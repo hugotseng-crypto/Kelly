@@ -2,45 +2,92 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>Kelly Quant - 動態控倉導航儀</title>
+    <title>Kelly Quant Pro - 實戰導航儀</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .risk-glow { box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); border-color: #ef4444 !important; }
+    </style>
 </head>
-<body class="bg-gray-900 text-gray-100 p-8">
-    <div class="max-w-6xl mx-auto">
-        <header class="mb-10">
-            <h1 class="text-3xl font-bold text-yellow-500">Kelly Quant 導航儀 v1.0</h1>
-            <p class="text-gray-400">專為理性投資者設計的動態倉位管理工具</p>
+<body class="bg-slate-950 text-slate-100 p-6">
+    <div class="max-w-7xl mx-auto">
+        <header class="flex justify-between items-center mb-8 border-b border-slate-800 pb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-emerald-400">Kelly Quant Pro <span class="text-sm font-normal text-slate-500">v2.1</span></h1>
+                <p class="text-slate-400 text-sm">量化動態控倉系統 (整合 A 股市場過濾器)</p>
+            </div>
+            <div class="text-right">
+                <p class="text-xs text-slate-500 uppercase">當前總資產預設</p>
+                <p class="text-lg font-mono">1,614,430.69</p>
+            </div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- 輸入面板 -->
-            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                <h2 class="text-xl mb-4 font-semibold text-blue-400">策略參數設置</h2>
-                <div class="space-y-4">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- 1. 市場環境修正區 (量化建議 1) -->
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800">
+                <h2 class="text-amber-400 text-sm font-bold mb-4 flex items-center">
+                    <span class="mr-2">●</span> 市場環境過濾 (A-Share Context)
+                </h2>
+                <div class="space-y-6">
                     <div>
-                        <label class="block text-sm">勝率 (p): <span id="val-p">50</span>%</label>
-                        <input type="range" id="p" min="1" max="99" value="50" class="w-full">
+                        <label class="block text-xs mb-2">日成交量: <span id="val-vol" class="text-amber-400">10000</span> 億</label>
+                        <input type="range" id="vol" min="4000" max="15000" step="500" value="10000" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-[10px] text-slate-500 mt-1">* 低於 8000 億將自動調降勝率</p>
                     </div>
                     <div>
-                        <label class="block text-sm">賠率 (b): <span id="val-b">2.0</span></label>
-                        <input type="range" id="b" min="0.1" max="10" step="0.1" value="2" class="w-full">
+                        <label class="block text-xs mb-2">標的趨勢 (均線位置)</label>
+                        <select id="trend" class="w-full bg-slate-800 border border-slate-700 text-sm p-2 rounded">
+                            <option value="1.0">20日均線上方 (強勢)</option>
+                            <option value="0.8">20日均線下方 (修正賠率)</option>
+                        </select>
                     </div>
-                    <div>
-                        <label class="block text-sm">凱利係數 (Fractional): <span id="val-f">0.5</span></label>
-                        <input type="range" id="fraction" min="0.1" max="1" step="0.1" value="0.5" class="w-full">
-                    </div>
-                </div>
-                <div class="mt-8 p-4 bg-blue-900/30 rounded-lg">
-                    <p class="text-sm">建議投入倉位：</p>
-                    <p id="suggested-bet" class="text-4xl font-bold text-green-400">--%</p>
                 </div>
             </div>
 
-            <!-- 圖表區 -->
-            <div class="md:col-span-2 bg-gray-800 p-6 rounded-xl border border-gray-700">
-                <h2 class="text-xl mb-4 font-semibold text-purple-400">預期增長曲線 (Kelly Hill)</h2>
-                <canvas id="kellyChart" height="150"></canvas>
+            <!-- 2. 策略參數 -->
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800">
+                <h2 class="text-blue-400 text-sm font-bold mb-4 flex items-center">
+                    <span class="mr-2">●</span> 策略勝率預估
+                </h2>
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-xs mb-1">基礎勝率 (p): <span id="val-p">50</span>%</label>
+                        <input type="range" id="p" min="30" max="80" value="50" class="w-full h-1 bg-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">預期賠率 (b): <span id="val-b">2.0</span></label>
+                        <input type="range" id="b" min="0.5" max="5" step="0.1" value="2" class="w-full h-1 bg-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-1">凱利係數 (Fractional): <span id="val-frac">0.25</span></label>
+                        <input type="range" id="frac" min="0.1" max="1" step="0.05" value="0.25" class="w-full h-1 bg-slate-700">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 實時監控與警告 (量化建議 2) -->
+            <div id="monitor-card" class="bg-slate-900 p-5 rounded-xl border border-slate-800 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-purple-400 text-sm font-bold mb-4">持倉壓力監控</h2>
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <p class="text-[10px] text-slate-500 uppercase">建議最高倉位</p>
+                            <p id="suggested-p" class="text-3xl font-mono font-bold text-emerald-400">--%</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] text-slate-500 uppercase">當前實際倉位</p>
+                            <p class="text-xl font-mono font-bold">86.6%</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="risk-alert" class="mt-4 p-3 rounded bg-slate-800 text-xs hidden">
+                    <!-- 警告內容動態插入 -->
+                </div>
+            </div>
+
+            <!-- 4. 成長曲線 -->
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800">
+                <canvas id="kellyChart"></canvas>
             </div>
         </div>
     </div>
@@ -49,32 +96,55 @@
         const ctx = document.getElementById('kellyChart').getContext('2d');
         let chart;
 
-        function calculateKelly(p, b) {
-            const q = 1 - p;
-            return (b * p - q) / b;
-        }
-
         function update() {
-            const p = document.getElementById('p').value / 100;
-            const b = parseFloat(document.getElementById('b').value);
-            const frac = parseFloat(document.getElementById('fraction').value);
-            
+            // 讀取原始參數
+            let p = document.getElementById('p').value / 100;
+            let b = parseFloat(document.getElementById('b').value);
+            const vol = parseInt(document.getElementById('vol').value);
+            const trendMod = parseFloat(document.getElementById('trend').value);
+            const frac = parseFloat(document.getElementById('frac').value);
+
+            // 量化修正邏輯
+            if (vol < 8000) p -= 0.05; // 成交量不足，勝率調降 5%
+            b = b * trendMod; // 均線下方，賠率預期打 8 折
+
             document.getElementById('val-p').innerText = (p * 100).toFixed(0);
             document.getElementById('val-b').innerText = b.toFixed(1);
-            document.getElementById('val-f').innerText = frac.toFixed(1);
+            document.getElementById('val-vol').innerText = vol;
+            document.getElementById('val-frac').innerText = frac.toFixed(2);
 
-            const fStar = calculateKelly(p, b);
-            const suggested = Math.max(0, fStar * frac);
-            document.getElementById('suggested-bet').innerText = (suggested * 100).toFixed(1) + "%";
+            // 凱利計算
+            const q = 1 - p;
+            const fStar = (b * p - q) / b;
+            const finalSuggested = Math.max(0, fStar * frac);
+            
+            const displayP = (finalSuggested * 100).toFixed(1);
+            document.getElementById('suggested-p').innerText = displayP + "%";
 
-            // 生成圖表數據
+            // 風險警示邏輯 (針對 86.6% 持倉)
+            const currentPos = 0.866;
+            const monitorCard = document.getElementById('monitor-card');
+            const alertBox = document.getElementById('risk-alert');
+            
+            if (currentPos > finalSuggested * 1.5) {
+                monitorCard.classList.add('risk-glow');
+                alertBox.classList.remove('hidden');
+                alertBox.innerHTML = `<span class="text-red-400 font-bold">超額警報：</span>目前倉位高出建議值 ${(currentPos*100 - displayP).toFixed(1)}%。建議減持弱勢標的以降低回撤風險。`;
+            } else {
+                monitorCard.classList.remove('risk-glow');
+                alertBox.classList.add('hidden');
+            }
+
+            updateChart(p, b);
+        }
+
+        function updateChart(p, b) {
             const labels = [];
             const data = [];
             for (let x = 0; x <= 1; x += 0.05) {
                 labels.push((x * 100).toFixed(0) + "%");
-                // 簡化的長期增長率公式: g = p*ln(1+f*b) + q*ln(1-f)
                 const growth = p * Math.log(1 + x * b) + (1 - p) * Math.log(1 - x);
-                data.push(isNaN(growth) || growth < -2 ? -2 : growth);
+                data.push(isNaN(growth) || growth < -1 ? -1 : growth);
             }
 
             if (chart) chart.destroy();
@@ -83,25 +153,25 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: '長期預期增長率',
                         data: data,
                         borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        fill: true,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: false,
                         tension: 0.4
                     }]
                 },
                 options: {
+                    plugins: { legend: { display: false } },
                     scales: {
-                        y: { display: false },
-                        x: { grid: { color: '#374151' } }
-                    },
-                    plugins: { legend: { display: false } }
+                        x: { ticks: { color: '#64748b', font: { size: 8 } }, grid: { display: false } },
+                        y: { display: false }
+                    }
                 }
             });
         }
 
-        document.querySelectorAll('input').forEach(input => input.oninput = update);
+        document.querySelectorAll('input, select').forEach(el => el.oninput = update);
         update();
     </script>
 </body>
