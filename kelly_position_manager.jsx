@@ -937,4 +937,13 @@ ${summary}
     </div>
   );
 }
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 
+// 假設你的主組件名稱叫 KellyTrader
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <KellyTrader />
+  </React.StrictMode>
+);
