@@ -5,7 +5,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://generativelanguage.googleapis.com https://api.coingecko.com https://query1.finance.yahoo.com https://mis.twse.com.tw https://finance.yahoo.com;"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' ancient-block-4627.hugo-tseng.workers.dev https://generativelanguage.googleapis.com https://api.coingecko.com https://query1.finance.yahoo.com https://mis.twse.com.tw https://finance.yahoo.com;"
         }
       ]
     }
