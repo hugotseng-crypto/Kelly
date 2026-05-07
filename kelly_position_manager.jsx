@@ -300,7 +300,7 @@ ${summary}
 
     try {
       // 尋找並替換此行
-const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+const res = await fetch(`ancient-block-4627.hugo-tseng.workers.dev/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
   // ... 其他 headers 與 body 保持不變
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
