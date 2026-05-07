@@ -270,10 +270,13 @@ export default function KellyTrader() {
   }, [positions]);
 
   // ── AI Analysis ─────────────────────────────────────────────────────
+  // ── Gemini AI Analysis ─────────────────────────────────────────────
   const runAI = useCallback(async () => {
     setAiLoading(true);
     setAiPanel(true);
     setAiResult('');
+
+    // 整理當前倉位數據
     const summary = enriched.map(p =>
       `${p.symbol}(${p.market}) 持倉:${p.units} 成本:${p.entry} 現價:${p.price||'未知'} PnL:${fmt(p.pnlPct)}% 勝率:${(p.p*100).toFixed(0)}% 盈虧比:${fmt(p.b)} Full Kelly:${fmt(p.fFull*100)}%`
     ).join('\n');
@@ -292,21 +295,24 @@ ${summary}
 
 語氣專業但簡潔，每點控制在2-3句。`;
 
+    // ⚠️ 請確保在 Vercel 環境變數中設定 VITE_GEMINI_API_KEY
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY; 
+
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          messages: [{ role:'user', content: prompt }],
+          contents: [{ parts: [{ text: prompt }] }]
         })
       });
+
       const data = await res.json();
-      const text = data.content?.map(c=>c.text||'').join('') || '分析失敗，請稍後再試。';
+      // Gemini 的回傳結構與 Claude 不同，需正確解析
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '分析失敗，請檢查 API Key 或稍後再試。';
       setAiResult(text);
-    } catch(e) {
-      setAiResult('⚠ 連線失敗，請確認網路狀態後重試。');
+    } catch (e) {
+      setAiResult('⚠ 連線失敗，請確認網路狀態或 API Key 設定。');
     }
     setAiLoading(false);
   }, [enriched]);
