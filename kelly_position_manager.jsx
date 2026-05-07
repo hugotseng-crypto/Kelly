@@ -937,4 +937,4 @@ ${summary}
     </div>
   );
 }
-export default KellyTrader;
+
